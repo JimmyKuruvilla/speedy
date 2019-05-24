@@ -13,32 +13,31 @@ const getPerfData = async page => {
 const getLoadTimes = async page => {
   const perf = await getPerfData(page);
   const timing = perf.timing;
-  const connect = Math.round(timing.connectEnd - perf.timeOrigin);
-  const request = Math.round(timing.responseEnd - timing.requestStart);
-  const pDom = Math.round(timing.domInteractive - timing.responseEnd);
-  const pSubResources = Math.round(
+  const connect = round(timing.connectEnd - perf.timeOrigin);
+  const request = round(timing.responseEnd - timing.requestStart);
+  const domContentLoaded = round(
     timing.domContentLoadedEventEnd - timing.domContentLoadedEventStart
   );
-  const pRender = Math.round(
-    timing.domComplete - timing.domContentLoadedEventEnd
+
+  const processing = round(timing.domComplete - timing.responseEnd);
+  const load = round(timing.loadEventEnd - timing.loadEventStart);
+  const chrome_load = round(timing.loadEventEnd - perf.timeOrigin);
+  const chrome_domContentLoaded = round(
+    timing.domContentLoadedEventEnd - perf.timeOrigin
   );
-  const totalProcessing = Math.round(timing.domComplete - timing.responseEnd);
-  const totalTime = Math.round(timing.loadEventEnd - perf.timeOrigin);
-  const domContentLoaded = Math.round(
-    timing.domContentLoadedEventEnd - timing.domContentLoadedEventStart
-  );
+
   return {
     connect,
     request,
-    pDom,
-    pSubResources,
-    pRender,
-    totalProcessing,
-    totalTime,
     domContentLoaded,
+    chrome_domContentLoaded,
+    processing,
+    load,
+    chrome_load
   };
 };
 
+const round = num => Math.round(num * 100) / 100;
 const arr = {
   sum: array => array.reduce((acc, next) => acc + next, 0),
   max: array => Math.max.apply(null, array),
@@ -55,7 +54,6 @@ const getOutputStr = times =>
   Object.keys(times)
     .map(key => {
       const v = times[key];
-      console.log(v);
       return `${key}: 
           mean: ${Math.round(arr.mean(v))}, 
           max: ${arr.max(v)}, 
